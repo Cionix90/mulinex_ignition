@@ -1,0 +1,20 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 1000 # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+
+joint_state_broadcaster:
+  ros__parameters:
+    joints:
+      - LF_HFE
+      - LH_HFE
+      - RF_HFE
+      - RH_HFE
+      - LF_KFE
+      - LH_KFE
+      - RF_KFE
+      - RH_KFE
+    use_sim_time: True
