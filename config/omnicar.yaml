@@ -4,6 +4,9 @@ controller_manager:
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+    
+    omni_control:
+      type: omni_vel_controller/Omni_Vel_Controller
 
 
 joint_state_broadcaster:
@@ -18,3 +21,10 @@ joint_state_broadcaster:
       - RF_KFE
       - RH_KFE
     use_sim_time: True
+
+omni_control:
+  ros__parameters:
+    mecanum_angle: 135.0
+    wheel_rad: 0.03875
+    pub_odom: true
+    sim: true
