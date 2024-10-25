@@ -1,0 +1,44 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 1000 # Hz
+
+    joint_state_broadcaster_1:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    
+    ik_leg:
+      type: ik_quad_foot_control/IK_Quad_Foot_Controller
+    omni_control:
+      type: omni_vel_controller/Omni_Vel_Controller
+
+
+joint_state_broadcaster_1:
+  ros__parameters:
+    joints:
+      - LF_HFE
+      - LH_HFE
+      - RF_HFE
+      - RH_HFE
+      - LF_KFE
+      - LH_KFE
+      - RF_KFE
+      - RH_KFE
+    use_sim_time: True
+
+ik_leg:
+  ros__parameters:
+      homing_pos: [0.095,-0.01,0.095,-0.01,0.095,-0.01,0.095,-0.01]
+      homing_dur: 5.0
+      pushup_height: -0.25
+      pushup_dur: 3.0
+      x_pos_bound: 0.2
+      z_pos_bound: 0.35
+      init_feet_pos_x: -0.02375
+      init_feet_pos_z: -0.25
+      use_sim_time: True
+
+omni_control:
+  ros__parameters:
+    mecanum_angle: 135.0
+    wheel_rad: 0.03875
+    pub_odom: true
+    sim: true
