@@ -12,7 +12,7 @@ find_package(mulinex_description REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 install(
-  DIRECTORY launch config  world rviz
+  DIRECTORY launch config  world rviz models
       DESTINATION share/${PROJECT_NAME}
 )
 

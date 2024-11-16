@@ -5,7 +5,7 @@ from launch.actions import (
     RegisterEventHandler,
     SetEnvironmentVariable,
 )
-from launch.actions import RegisterEventHandler
+from launch.actions import RegisterEventHandler,AppendEnvironmentVariable
 from launch.event_handlers import OnProcessExit
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
@@ -27,19 +27,18 @@ def generate_launch_description():
     #define empty launch description
     ld = launch.LaunchDescription()
 
-    
 
     #define launch configuration parameter
     gz_verbosity = LaunchConfiguration("gz_verbosity")
     robot_xacro = LaunchConfiguration("robot_xacro")
     world_name = LaunchConfiguration("world_name")
     xacro_pkg = LaunchConfiguration("xacro_pkg")
-    control_cfg_pkg = LaunchConfiguration("control_cfg_pkg")
+    
     control_cfg_file_name = LaunchConfiguration("control_cfg_file_name")
     log_level = LaunchConfiguration("log_level")
     xacro_pkg = LaunchConfiguration("xacro_pkg")
     use_lidar_3D = LaunchConfiguration("use_lidar_3D")
-
+    control_cfg_pkg = LaunchConfiguration("control_config_pkg")
     #define launch arguments
     gz_verbosity_arg = DeclareLaunchArgument(
                 "gz_verbosity",
@@ -66,7 +65,7 @@ def generate_launch_description():
             )
 
     control_cfg_pkg_arg = DeclareLaunchArgument(
-                "control_cfg_pkg",
+                "control_config_pkg",
                 default_value="mulinex_ignition",
                 description="Controller configuration file Package"    
             )
@@ -91,7 +90,6 @@ def generate_launch_description():
     
     # get installed folder path 
     package_share_path = FindPackageShare('mulinex_ignition')
-    package_share_path = FindPackageShare('mulinex_description')
     
 
     # get configuration file path 
@@ -101,27 +99,38 @@ def generate_launch_description():
             'urdf', robot_xacro
         ]
     )
-
     # get controller configuration file path
     conf_file_path = PathJoinSubstitution(
         [
-            FindPackageShare(control_cfg_pkg),
+            package_share_path,
             'config', control_cfg_file_name
+        ]
+    )
+    # get models file 
+    models_path = PathJoinSubstitution(
+        [
+            package_share_path,
+            'models'
+        ]
+    )
+
+    world_path =  PathJoinSubstitution(
+        [
+            package_share_path,
+            'world',
+            world_name
         ]
     )
 
     #collect Environment variable path 
     gz_env = {'GZ_SIM_SYSTEM_PLUGIN_PATH':
            ':'.join([os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', default=''),
-                     os.environ.get('LD_LIBRARY_PATH', default='')]),
-           'IGN_GAZEBO_SYSTEM_PLUGIN_PATH':  # TODO(CH3): To support pre-garden. Deprecated.
-                      ':'.join([os.environ.get('IGN_GAZEBO_SYSTEM_PLUGIN_PATH', default=''),
-                                os.environ.get('LD_LIBRARY_PATH', default='')])}
-
+                     os.environ.get('LD_LIBRARY_PATH', default='')])}
+    # set_gazebo_model_path_env = AppendEnvironmentVariable("GZ_SIM_RESOURCE_PATH", models_path)
     # define the simulator action 
     exec = 'ruby $(which gz) sim'
     sim = ExecuteProcess(
-            cmd=[ exec, world_name,  '-r', '-v', gz_verbosity],
+            cmd=[ exec, world_path,  '-r', '-v', gz_verbosity],
             output='screen',
             additional_env=gz_env, # type: ignore
             shell=True,
@@ -184,7 +193,7 @@ def generate_launch_description():
          '--param-file',
             conf_file_path],
     )
-
+    
     # add arguments
     ld.add_action(gz_verbosity_arg)
     ld.add_action(robot_xacro_arg)
@@ -194,6 +203,15 @@ def generate_launch_description():
     ld.add_action(control_cfg_pkg_arg)
     ld.add_action(control_cfg_file_name_arg)
     ld.add_action(use_lidar_3D_arg)
+
+    #det env variable to export custom models
+    ld.add_action(
+        SetEnvironmentVariable(
+            name="GZ_SIM_RESOURCE_PATH",
+            value=models_path,
+        )
+    )
+
     # add action 
     ld.add_action(sim)
     ld.add_action(bridge)
