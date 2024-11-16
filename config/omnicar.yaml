@@ -1,25 +1,22 @@
 controller_manager:
   ros__parameters:
-    update_rate: 1000 # Hz
+    update_rate: 340 # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
     
     omni_control:
-      type: omni_vel_controller/Omni_Vel_Controller
+      type: omni_vel_controller/OmniVelController
 
 
 joint_state_broadcaster:
   ros__parameters:
     joints:
-      - LF_HFE
-      - LH_HFE
-      - RF_HFE
-      - RH_HFE
-      - LF_KFE
-      - LH_KFE
-      - RF_KFE
-      - RH_KFE
+      - LF_WHEEL_JNT
+      - LH_WHEEL_JNT
+      - RF_WHEEL_JNT
+      - RH_WHEEL_JNT
+
     use_sim_time: True
 
 omni_control:
@@ -28,3 +25,4 @@ omni_control:
     wheel_rad: 0.03875
     pub_odom: true
     sim: true
+    use_sim_time: True
