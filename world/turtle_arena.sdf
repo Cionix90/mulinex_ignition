@@ -1,24 +1,23 @@
 <sdf version="1.6">
   <world name="empty">
-    <physics name="1ms" type="ignored">
+     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics">
+    filename="libignition-gazebo-physics-system.so"
+    name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
-      name="gz::sim::systems::UserCommands">
+        filename="libignition-gazebo-user-commands-system.so"
+        name="ignition::gazebo::systems::UserCommands">
     </plugin>
+
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
+        filename="libignition-gazebo-scene-broadcaster-system.so"
+        name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-    <plugin
-      filename="gz-sim-contact-system"
-      name="gz::sim::systems::Contact">
+    <plugin filename="libignition-gazebo-contact-system.so" name="ignition::gazebo::systems::Contact">
     </plugin>
 
     <light type="directional" name="sun">
@@ -62,7 +61,7 @@
       </link>
     </model>
     <include>
-        <uri>TurtlebotArena</uri>
+        <uri>../models/TurtlebotArena</uri>
         <pose>0.0 0.0 0.0 0 0 0</pose>
     </include>
   </world>

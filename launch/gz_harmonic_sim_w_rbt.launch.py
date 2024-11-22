@@ -125,12 +125,15 @@ def generate_launch_description():
     #collect Environment variable path 
     gz_env = {'GZ_SIM_SYSTEM_PLUGIN_PATH':
            ':'.join([os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', default=''),
-                     os.environ.get('LD_LIBRARY_PATH', default='')])}
+                     os.environ.get('LD_LIBRARY_PATH', default='')]),
+           'IGN_GAZEBO_SYSTEM_PLUGIN_PATH':  # TODO(CH3): To support pre-garden. Deprecated.
+                      ':'.join([os.environ.get('IGN_GAZEBO_SYSTEM_PLUGIN_PATH', default=''),
+                                os.environ.get('LD_LIBRARY_PATH', default='')])}
     # set_gazebo_model_path_env = AppendEnvironmentVariable("GZ_SIM_RESOURCE_PATH", models_path)
     # define the simulator action 
-    exec = 'ruby $(which gz) sim'
+    exec = "ruby $(which ign) gazebo"
     sim = ExecuteProcess(
-            cmd=[ exec, world_path,  '-r', '-v', gz_verbosity],
+            cmd=[ exec , world_path,  '-r', '-v', gz_verbosity],
             output='screen',
             additional_env=gz_env, # type: ignore
             shell=True,
@@ -140,14 +143,14 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            '/lidar@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+            '/lidar@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan',
             '/imu@sensor_msgs/msg/Imu[ignition.msgs.IMU',
             '/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock',
-            '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
-            '/rgbd_camera/image@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/rgbd_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
-            '/rgbd_camera/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
-            '/rgbd_camera/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked'
+            '/lidar/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked',
+            '/rgbd_camera/image@sensor_msgs/msg/Image@ignition.msgs.Image',
+            '/rgbd_camera/camera_info@sensor_msgs/msg/CameraInfo@ignition.msgs.CameraInfo',
+            '/rgbd_camera/depth_image@sensor_msgs/msg/Image@ignition.msgs.Image',
+            '/rgbd_camera/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked'
         ],
         output="screen",
     )
@@ -166,13 +169,32 @@ def generate_launch_description():
     )
     
     # define the spawner node 
+    # spawn_entity = Node(
+    #     package="ros_gz_sim",
+    #     executable="create",
+    #     output="screen",
+    #     arguments=[
+    #         "-name",
+    #         "mobile_robot",
+    #         "-topic",
+    #         "robot_description",
+    #         "-z",
+    #         "1.0",
+    #         "-x",
+    #         "-2.0",
+    #         "--ros-args",
+    #         "--log-level",
+    #         log_level,
+    #     ],
+    #     parameters=[{"use_sim_time": True}],
+    # )
     spawn_entity = Node(
         package="ros_gz_sim",
         executable="create",
         output="screen",
         arguments=[
             "-name",
-            "mobile_robot",
+            "sam_bot",
             "-topic",
             "robot_description",
             "-z",
@@ -185,7 +207,6 @@ def generate_launch_description():
         ],
         parameters=[{"use_sim_time": True}],
     )
-
     omni_control_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -207,11 +228,16 @@ def generate_launch_description():
     #det env variable to export custom models
     ld.add_action(
         SetEnvironmentVariable(
-            name="GZ_SIM_RESOURCE_PATH",
-            value=models_path,
-        )
-    )
-
+                name="IGN_GAZEBO_RESOURCE_PATH",
+                value=models_path,
+            )
+        ),
+    ld.add_action(
+            SetEnvironmentVariable(
+                name="IGN_GAZEBO_MODEL_PATH",
+                value=models_path,
+            )
+        ),
     # add action 
     ld.add_action(sim)
     ld.add_action(bridge)
@@ -219,12 +245,12 @@ def generate_launch_description():
     ld.add_action(spawn_entity)
 
     # load controller after spawn entity
-    ld.add_action(
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=spawn_entity,
-                on_exit=[omni_control_spawner],
-            )
-        )
-    )
+    # ld.add_action(
+    #     RegisterEventHandler(
+    #         event_handler=OnProcessExit(
+    #             target_action=spawn_entity,
+    #             on_exit=[omni_control_spawner],
+    #         )
+    #     )
+    # )
     return ld
