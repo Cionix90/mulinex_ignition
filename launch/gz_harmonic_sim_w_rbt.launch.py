@@ -245,12 +245,12 @@ def generate_launch_description():
     ld.add_action(spawn_entity)
 
     # load controller after spawn entity
-    # ld.add_action(
-    #     RegisterEventHandler(
-    #         event_handler=OnProcessExit(
-    #             target_action=spawn_entity,
-    #             on_exit=[omni_control_spawner],
-    #         )
-    #     )
-    # )
+    ld.add_action(
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=spawn_entity,
+                on_exit=[omni_control_spawner],
+            )
+        )
+    )
     return ld
