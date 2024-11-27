@@ -19,7 +19,9 @@
     </plugin>
     <plugin filename="libignition-gazebo-contact-system.so" name="ignition::gazebo::systems::Contact">
     </plugin>
-
+    <plugin name='rgl::RGLServerPluginManager' filename='RGLServerPluginManager'>
+        <do_ignore_entities_in_lidar_link>true</do_ignore_entities_in_lidar_link>
+    </plugin>
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
