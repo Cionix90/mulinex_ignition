@@ -145,6 +145,8 @@ def generate_launch_description():
         arguments=[
             '/lidar@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan',
             '/imu@sensor_msgs/msg/Imu[ignition.msgs.IMU',
+            '/gt_odom@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
+            '/gt_pose@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
             '/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock',
             '/rgl_lidar@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked',
             '/rgbd_camera/image@sensor_msgs/msg/Image@ignition.msgs.Image',
@@ -194,7 +196,7 @@ def generate_launch_description():
         output="screen",
         arguments=[
             "-name",
-            "sam_bot",
+            "mulinex",
             "-topic",
             "robot_description",
             "-z",

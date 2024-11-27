@@ -44,7 +44,7 @@ def generate_launch_description():
     tf = Node(
             package='tf2_ros',
             executable='static_transform_publisher',
-            arguments='0.0 0.0 0.0 0.0 0.0 0.0 map RGLLidar'.split(' '),
+            arguments='0.0 0.0 0.0 0.0 0.0 0.0 base_link velodyne'.split(' '),
             output='screen'
             )
     # define robot state publisher node to provide urdf description 
@@ -73,7 +73,7 @@ def generate_launch_description():
 
     
 
-    ld.add_action(bridge)
+    # ld.add_action(bridge)
     ld.add_action(tf)
     
     return ld
