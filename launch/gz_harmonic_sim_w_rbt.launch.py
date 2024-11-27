@@ -146,7 +146,7 @@ def generate_launch_description():
             '/lidar@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan',
             '/imu@sensor_msgs/msg/Imu[ignition.msgs.IMU',
             '/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock',
-            '/lidar/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked',
+            '/rgl_lidar@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked',
             '/rgbd_camera/image@sensor_msgs/msg/Image@ignition.msgs.Image',
             '/rgbd_camera/camera_info@sensor_msgs/msg/CameraInfo@ignition.msgs.CameraInfo',
             '/rgbd_camera/depth_image@sensor_msgs/msg/Image@ignition.msgs.Image',
