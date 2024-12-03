@@ -4,7 +4,9 @@
 #include <string>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "nav_msgs/msg/path.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/transform_broadcaster.h"
@@ -14,7 +16,7 @@ class GTOdomPublisher : public rclcpp::Node
 {
 public:
   GTOdomPublisher()
-  : Node("turtle_tf2_frame_publisher")
+  : Node("ignition_ground_truth")
   {
     // Declare and acquire `turtlename` parameter
     turtlename_ = this->declare_parameter<std::string>("turtlename", "turtle");
@@ -27,45 +29,62 @@ public:
     // callback function on each message
     
     std::string topic_name = "gt_odom";
+    path_msg_.poses.resize(0); 
 
     subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
       topic_name, 10,
       std::bind(&GTOdomPublisher::broadcast_tf2, this, std::placeholders::_1));
+    pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+        "gt_pose", 10
+      );
+    path_pub_ = this->create_publisher<nav_msgs::msg::Path>(
+        "gt_path", 10
+      );
   }
 
 private:
   void broadcast_tf2(const std::shared_ptr<nav_msgs::msg::Odometry> msg)
   {
     geometry_msgs::msg::TransformStamped t;
+    geometry_msgs::msg::PoseStamped p;
 
     // // Read message content and assign it to
     // // corresponding tf variables
     t.header.stamp = msg->header.stamp;
     t.header.frame_id = "gt_odom";
     t.child_frame_id = "base_link";
+    p.header.stamp = msg->header.stamp;
+    p.header.frame_id = "gt_odom";
+    path_msg_.header.stamp = msg->header.stamp;
+    path_msg_.header.frame_id = "gt_odom";
 
-    // // Turtle only exists in 2D, thus we get x and y translation
-    // // coordinates from the message and set the z coordinate to 0
+
     t.transform.translation.x = msg->pose.pose.position.x;
     t.transform.translation.y = msg->pose.pose.position.y;
     t.transform.translation.z = msg->pose.pose.position.z;
+    
 
-    // // For the same reason, turtle can only rotate around one axis
-    // // and this why we set rotation in x and y to 0 and obtain
-    // // rotation in z axis from the message
     
     t.transform.rotation.x = msg->pose.pose.orientation.x;
     t.transform.rotation.y = msg->pose.pose.orientation.y;
     t.transform.rotation.z = msg->pose.pose.orientation.z;
     t.transform.rotation.w = msg->pose.pose.orientation.w;
-
-    // // Send the transformation
+    p.set__pose(msg->pose.pose);
+    path_msg_.poses.push_back(p);
+    if(path_msg_.poses.size() > max_poses_)
+      path_msg_.poses.erase(path_msg_.poses.begin());
     tf_broadcaster_->sendTransform(t);
+    pose_pub_->publish(p);
+    path_pub_->publish(path_msg_);
   }
 
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   std::string turtlename_;
+  nav_msgs::msg::Path path_msg_;
+  long unsigned int max_poses_ = 1000;
 };
 
 int main(int argc, char * argv[])

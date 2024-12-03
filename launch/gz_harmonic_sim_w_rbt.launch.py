@@ -4,6 +4,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     RegisterEventHandler,
     SetEnvironmentVariable,
+    IncludeLaunchDescription
 )
 from launch.actions import RegisterEventHandler,AppendEnvironmentVariable
 from launch.event_handlers import OnProcessExit
@@ -39,6 +40,7 @@ def generate_launch_description():
     xacro_pkg = LaunchConfiguration("xacro_pkg")
     use_lidar_3D = LaunchConfiguration("use_lidar_3D")
     control_cfg_pkg = LaunchConfiguration("control_config_pkg")
+    joystic_teleop = LaunchConfiguration("joystic_teleop")
     #define launch arguments
     gz_verbosity_arg = DeclareLaunchArgument(
                 "gz_verbosity",
@@ -86,6 +88,11 @@ def generate_launch_description():
                 "use_lidar_3D",
                 default_value="true",
                 description="Set 'true' to use the lidar 3D, as Velodyne, or lidar 2D, as RPLidarA2",
+            )
+    joystic_teleop_arg = DeclareLaunchArgument(
+                "joystic_teleop",
+                default_value="true",
+                description="Set 'true' to use the omni mulinex joystic node to teleop the robot",
             )
     
     # get installed folder path 
@@ -143,10 +150,8 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            '/lidar@sensor_msgs/msg/LaserScan[ignition.msgs.LaserScan',
             '/imu@sensor_msgs/msg/Imu[ignition.msgs.IMU',
             '/gt_odom@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
-            '/gt_pose@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
             '/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock',
             '/rgl_lidar@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked',
             '/rgbd_camera/image@sensor_msgs/msg/Image@ignition.msgs.Image',
@@ -170,26 +175,16 @@ def generate_launch_description():
         ],
     )
     
-    # define the spawner node 
-    # spawn_entity = Node(
-    #     package="ros_gz_sim",
-    #     executable="create",
-    #     output="screen",
-    #     arguments=[
-    #         "-name",
-    #         "mobile_robot",
-    #         "-topic",
-    #         "robot_description",
-    #         "-z",
-    #         "1.0",
-    #         "-x",
-    #         "-2.0",
-    #         "--ros-args",
-    #         "--log-level",
-    #         log_level,
-    #     ],
-    #     parameters=[{"use_sim_time": True}],
-    # )
+    gazebo_gt = spawn_entity = Node(
+        package="mulinex_ignition",
+        executable="gt_odom_pub",
+        output="screen")
+
+    gazebo_gt = spawn_entity = Node(
+        package="mulinex_ignition",
+        executable="gt_odom_pub",
+        output="screen")
+
     spawn_entity = Node(
         package="ros_gz_sim",
         executable="create",
@@ -216,6 +211,17 @@ def generate_launch_description():
          '--param-file',
             conf_file_path],
     )
+
+    joy_launch = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                PathJoinSubstitution([
+                    FindPackageShare('omni_mulinex_joystic'),
+                    'launch',
+                    'start_joy_sim.launch.py'
+                ])
+            ]),
+            condition=IfCondition(joystic_teleop)
+        )
     
     # add arguments
     ld.add_action(gz_verbosity_arg)
@@ -226,6 +232,7 @@ def generate_launch_description():
     ld.add_action(control_cfg_pkg_arg)
     ld.add_action(control_cfg_file_name_arg)
     ld.add_action(use_lidar_3D_arg)
+    ld.add_action(joystic_teleop_arg)
 
     #det env variable to export custom models
     ld.add_action(
@@ -245,6 +252,7 @@ def generate_launch_description():
     ld.add_action(bridge)
     ld.add_action(robot_state_publisher_node)
     ld.add_action(spawn_entity)
+    ld.add_action(gazebo_gt)
 
     # load controller after spawn entity
     ld.add_action(
@@ -254,5 +262,8 @@ def generate_launch_description():
                 on_exit=[omni_control_spawner],
             )
         )
+    )
+    ld.add_action(
+        joy_launch
     )
     return ld

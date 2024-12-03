@@ -23,6 +23,6 @@ omni_control:
   ros__parameters:
     mecanum_angle: 135.0
     wheel_rad: 0.03875
-    pub_odom: true
+    pub_odom: false
     sim: true
     use_sim_time: True
