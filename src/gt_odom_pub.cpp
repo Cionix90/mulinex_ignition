@@ -18,9 +18,10 @@ public:
   GTOdomPublisher()
   : Node("ignition_ground_truth")
   {
+    std::string robot_name;
     // Declare and acquire `turtlename` parameter
-    turtlename_ = this->declare_parameter<std::string>("turtlename", "turtle");
-
+    this->declare_parameter<std::string>("robot_name", "omnicar");
+    robot_name = this->get_parameter("robot_name").as_string();
     // Initialize the transform broadcaster
     tf_broadcaster_ =
       std::make_unique<tf2_ros::TransformBroadcaster>(*this);
@@ -28,17 +29,18 @@ public:
     // Subscribe to a turtle{1}{2}/pose topic and call handle_turtle_pose
     // callback function on each message
     
-    std::string topic_name = "gt_odom";
+    base_name_ = robot_name + "base_link";
+    odom_name_ = robot_name + "gt_odom";
     path_msg_.poses.resize(0); 
 
     subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
-      topic_name, 10,
+     robot_name + "gt_odom", 10,
       std::bind(&GTOdomPublisher::broadcast_tf2, this, std::placeholders::_1));
     pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
-        "gt_pose", 10
+        robot_name + "gt_pose", 10
       );
     path_pub_ = this->create_publisher<nav_msgs::msg::Path>(
-        "gt_path", 10
+       robot_name + "gt_path", 10
       );
   }
 
@@ -51,12 +53,12 @@ private:
     // // Read message content and assign it to
     // // corresponding tf variables
     t.header.stamp = msg->header.stamp;
-    t.header.frame_id = "gt_odom";
-    t.child_frame_id = "base_link";
+    t.header.frame_id = odom_name_;
+    t.child_frame_id = base_name_;
     p.header.stamp = msg->header.stamp;
-    p.header.frame_id = "gt_odom";
+    p.header.frame_id = odom_name_;
     path_msg_.header.stamp = msg->header.stamp;
-    path_msg_.header.frame_id = "gt_odom";
+    path_msg_.header.frame_id = odom_name_;
 
 
     t.transform.translation.x = msg->pose.pose.position.x;
@@ -82,7 +84,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-  std::string turtlename_;
+  std::string robot_name_, base_name_, odom_name_;
   nav_msgs::msg::Path path_msg_;
   long unsigned int max_poses_ = 1000;
 };

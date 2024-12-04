@@ -16,7 +16,8 @@ from launch.substitutions import (
     LaunchConfiguration,
     NotSubstitution,
     AndSubstitution,
-    PathJoinSubstitution
+    PathJoinSubstitution,
+    TextSubstitution
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
@@ -41,6 +42,7 @@ def generate_launch_description():
     use_lidar_3D = LaunchConfiguration("use_lidar_3D")
     control_cfg_pkg = LaunchConfiguration("control_config_pkg")
     joystic_teleop = LaunchConfiguration("joystic_teleop")
+    robot_namespace = LaunchConfiguration("robot_namespace")
     #define launch arguments
     gz_verbosity_arg = DeclareLaunchArgument(
                 "gz_verbosity",
@@ -93,6 +95,11 @@ def generate_launch_description():
                 "joystic_teleop",
                 default_value="true",
                 description="Set 'true' to use the omni mulinex joystic node to teleop the robot",
+            )
+    robot_namespace_arg = DeclareLaunchArgument(
+                "robot_namespace",
+                default_value="omnicar/",
+                description="Robot Name",
             )
     
     # get installed folder path 
@@ -150,14 +157,14 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            '/imu@sensor_msgs/msg/Imu[ignition.msgs.IMU',
-            '/gt_odom@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
-            '/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock',
-            '/rgl_lidar@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked',
-            '/rgbd_camera/image@sensor_msgs/msg/Image@ignition.msgs.Image',
-            '/rgbd_camera/camera_info@sensor_msgs/msg/CameraInfo@ignition.msgs.CameraInfo',
-            '/rgbd_camera/depth_image@sensor_msgs/msg/Image@ignition.msgs.Image',
-            '/rgbd_camera/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked'
+            [robot_namespace, "imu@sensor_msgs/msg/Imu[ignition.msgs.IMU"],
+            [robot_namespace,"gt_odom@nav_msgs/msg/Odometry@ignition.msgs.Odometry"],
+            "/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock",
+            [robot_namespace,"rgl_lidar@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked"],
+            # "/rgbd_camera/image@sensor_msgs/msg/Image@ignition.msgs.Image",
+            # "/rgbd_camera/camera_info@sensor_msgs/msg/CameraInfo@ignition.msgs.CameraInfo",
+            # "/rgbd_camera/depth_image@sensor_msgs/msg/Image@ignition.msgs.Image",
+            # "/rgbd_camera/points@sensor_msgs/msg/PointCloud2@ignition.msgs.PointCloudPacked"
         ],
         output="screen",
     )
@@ -170,20 +177,21 @@ def generate_launch_description():
             {"robot_description": Command(
                 ["xacro ", xacro_file_path,
                 " use_gazebo:=true yaml_file:=",
-                conf_file_path," lidar_3D:=",use_lidar_3D]
-                )}
+                conf_file_path," lidar_3D:=",use_lidar_3D," robot_namespace:=",robot_namespace]
+                ),
+             "frame_prefix": robot_namespace}
         ],
     )
     
-    gazebo_gt = spawn_entity = Node(
+    gazebo_gt  = Node(
         package="mulinex_ignition",
         executable="gt_odom_pub",
+        parameters=[{
+                "robot_name": robot_namespace
+            }],
         output="screen")
 
-    gazebo_gt = spawn_entity = Node(
-        package="mulinex_ignition",
-        executable="gt_odom_pub",
-        output="screen")
+
 
     spawn_entity = Node(
         package="ros_gz_sim",
@@ -233,6 +241,7 @@ def generate_launch_description():
     ld.add_action(control_cfg_file_name_arg)
     ld.add_action(use_lidar_3D_arg)
     ld.add_action(joystic_teleop_arg)
+    ld.add_action(robot_namespace_arg)
 
     #det env variable to export custom models
     ld.add_action(
