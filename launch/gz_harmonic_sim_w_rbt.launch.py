@@ -43,6 +43,7 @@ def generate_launch_description():
     control_cfg_pkg = LaunchConfiguration("control_config_pkg")
     joystic_teleop = LaunchConfiguration("joystic_teleop")
     robot_namespace = LaunchConfiguration("robot_namespace")
+    pub_tf_gt = LaunchConfiguration("pub_tf_gt")
     #define launch arguments
     gz_verbosity_arg = DeclareLaunchArgument(
                 "gz_verbosity",
@@ -100,6 +101,11 @@ def generate_launch_description():
                 "robot_namespace",
                 default_value="omnicar/",
                 description="Robot Name",
+            )
+    pub_tf_gt_arg = DeclareLaunchArgument(
+                "pub_tf_gt",
+                default_value="false",
+                description="Publish ground truth odometry tf, Pose and Path message for RViz2 visualization purpose",
             )
     
     # get installed folder path 
@@ -189,6 +195,7 @@ def generate_launch_description():
         parameters=[{
                 "robot_name": robot_namespace
             }],
+        condition=IfCondition( pub_tf_gt),
         output="screen")
 
 
@@ -242,6 +249,7 @@ def generate_launch_description():
     ld.add_action(use_lidar_3D_arg)
     ld.add_action(joystic_teleop_arg)
     ld.add_action(robot_namespace_arg)
+    ld.add_action(pub_tf_gt_arg)
 
     #det env variable to export custom models
     ld.add_action(
