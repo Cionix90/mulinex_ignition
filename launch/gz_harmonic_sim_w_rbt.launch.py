@@ -210,7 +210,7 @@ def generate_launch_description():
             "-topic",
             "robot_description",
             "-z",
-            "1.0",
+            "0.4",
             "-x",
             "-2.0",
             "--ros-args",
@@ -266,21 +266,21 @@ def generate_launch_description():
         ),
     # add action 
     ld.add_action(sim)
-    ld.add_action(bridge)
-    ld.add_action(robot_state_publisher_node)
-    ld.add_action(spawn_entity)
-    ld.add_action(gazebo_gt)
+    # ld.add_action(bridge)
+    # ld.add_action(robot_state_publisher_node)
+    # ld.add_action(spawn_entity)
+    # ld.add_action(gazebo_gt)
 
     # load controller after spawn entity
-    ld.add_action(
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=spawn_entity,
-                on_exit=[omni_control_spawner],
-            )
-        )
-    )
-    ld.add_action(
-        joy_launch
-    )
+    # ld.add_action(
+    #     RegisterEventHandler(
+    #         event_handler=OnProcessExit(
+    #             target_action=spawn_entity,
+    #             on_exit=[omni_control_spawner],
+    #         )
+    #     )
+    # )
+    # ld.add_action(
+    #     joy_launch
+    # )
     return ld
