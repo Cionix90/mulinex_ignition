@@ -266,9 +266,9 @@ def generate_launch_description():
         ),
     # add action 
     ld.add_action(sim)
-    # ld.add_action(bridge)
-    # ld.add_action(robot_state_publisher_node)
-    # ld.add_action(spawn_entity)
+    ld.add_action(bridge)
+    ld.add_action(robot_state_publisher_node)
+    ld.add_action(spawn_entity)
     # ld.add_action(gazebo_gt)
 
     # load controller after spawn entity
